@@ -32,18 +32,24 @@ export default function BusinessHours() {
     }
 
     const handleToggleDay = (dayKey) => {
-        setLocalHours((prev) => ({
-            ...prev,
-            [dayKey]: { ...prev[dayKey], enabled: !prev[dayKey].enabled },
-        }));
+        setLocalHours((prev) => {
+            const current = prev?.[dayKey] || { enabled: false, start: '09:00', end: '18:00' };
+            return {
+                ...prev,
+                [dayKey]: { ...current, enabled: !current.enabled },
+            };
+        });
         setSaved(false);
     };
 
     const handleTimeChange = (dayKey, field, value) => {
-        setLocalHours((prev) => ({
-            ...prev,
-            [dayKey]: { ...prev[dayKey], [field]: value },
-        }));
+        setLocalHours((prev) => {
+            const current = prev?.[dayKey] || { enabled: false, start: '09:00', end: '18:00' };
+            return {
+                ...prev,
+                [dayKey]: { ...current, [field]: value },
+            };
+        });
         setSaved(false);
     };
 
@@ -78,13 +84,14 @@ export default function BusinessHours() {
             {/* Dias da semana */}
             <div className="space-y-2">
                 {WEEKDAYS_CONFIG.map((day) => {
-                    const config = localHours[day.key];
+                    const config = localHours?.[day.key] || { enabled: false, start: '09:00', end: '18:00' };
+                    const isEnabled = config?.enabled || false;
                     return (
                         <div
                             key={day.key}
-                            className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${config.enabled
-                                    ? 'bg-[var(--color-bg-tertiary)] border-[var(--color-border)]'
-                                    : 'bg-[var(--color-bg-primary)] border-[var(--color-border)] opacity-60'
+                            className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${isEnabled
+                                ? 'bg-[var(--color-bg-tertiary)] border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]'
+                                : 'bg-[var(--color-bg-primary)] border-[var(--color-border)] opacity-60'
                                 }`}
                         >
                             {/* Toggle */}
@@ -92,7 +99,7 @@ export default function BusinessHours() {
                                 onClick={() => handleToggleDay(day.key)}
                                 className="flex-shrink-0 cursor-pointer"
                             >
-                                {config.enabled ? (
+                                {isEnabled ? (
                                     <ToggleRight size={28} className="text-purple-400" />
                                 ) : (
                                     <ToggleLeft size={28} className="text-[var(--color-text-muted)]" />
@@ -100,13 +107,13 @@ export default function BusinessHours() {
                             </button>
 
                             {/* Nome do dia */}
-                            <span className={`w-32 text-sm font-medium ${config.enabled ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'
+                            <span className={`w-32 text-sm font-medium ${isEnabled ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'
                                 }`}>
                                 {day.label}
                             </span>
 
                             {/* Horários */}
-                            {config.enabled && (
+                            {isEnabled && (
                                 <div className="flex items-center gap-2 text-sm">
                                     <input
                                         type="time"

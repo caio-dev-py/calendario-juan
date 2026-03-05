@@ -94,7 +94,7 @@ export default function Sidebar() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-200 truncate">
-                                {profile?.full_name || 'Usuário'}
+                                {profile?.full_name || 'Carregando...'}
                             </p>
                             <div className="flex items-center gap-1">
                                 {isAdmin && <Shield size={10} className="text-amber-400" />}

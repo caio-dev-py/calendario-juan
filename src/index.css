@@ -36,12 +36,6 @@
   --color-available: #22c55e;
 }
 
-/* ===== Base Styles ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 body {
   font-family: var(--font-sans);

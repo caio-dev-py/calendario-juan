@@ -28,23 +28,31 @@ export function AuthProvider({ children }) {
      * Busca o perfil (role) do usuário na tabela profiles.
      */
     const fetchProfile = useCallback(async (userId) => {
+        console.log(`[Auth] Iniciando busca de perfil para: ${userId}`);
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
+            const { data, error } = await Promise.race([
+                supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single(),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Timeout na resposta do Banco de Dados (5s)')), 5000)
+                ),
+            ]);
 
             if (error && error.code === 'PGRST116') {
-                // Perfil não encontrado — criar automaticamente (fallback)
-                console.warn('Perfil não encontrado, criando automaticamente...');
+                console.warn('[Auth] Perfil não encontrado no banco. Tentando criar...');
                 const { data: { user: authUser } } = await supabase.auth.getUser();
+
+                // Pega nome do metadata se existir
+                const fullName = authUser?.user_metadata?.full_name || '';
 
                 const newProfile = {
                     id: userId,
                     email: authUser?.email || '',
-                    full_name: authUser?.user_metadata?.full_name || '',
-                    role: 'user',
+                    full_name: fullName,
+                    role: 'user', // Default
                 };
 
                 const { data: created, error: insertError } = await supabase
@@ -54,19 +62,23 @@ export function AuthProvider({ children }) {
                     .single();
 
                 if (insertError) {
-                    console.error('Erro ao criar perfil:', insertError.message);
-                    return newProfile; // retorna local como fallback
+                    console.error('[Auth] Falha crítica ao salvar perfil no banco:', insertError.message);
+                    // IMPORTANTE: Não retornar um objeto local aqui para evitar o estado "fantasma" que trava o Admin.
+                    // Retornamos um objeto que indica que estamos usando metadados temporários
+                    return { ...newProfile, isTemporary: true };
                 }
                 return created;
             }
 
             if (error) {
-                console.error('Erro ao buscar perfil:', error.message);
+                console.error('[Auth] Erro ao carregar perfil:', error.message);
                 return null;
             }
+
+            console.log('[Auth] Perfil recuperado com sucesso:', data.full_name || data.email);
             return data;
         } catch (err) {
-            console.error('Erro ao buscar perfil:', err);
+            console.error('[Auth] Erro excepcional no fetchProfile:', err.message);
             return null;
         }
     }, []);
@@ -144,15 +156,32 @@ export function AuthProvider({ children }) {
 
     /**
      * Login com email e senha.
+     * Inclui timeout de 10s para evitar travamento infinito no UI.
      */
     const signIn = async (email, password) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        console.log(`[Auth] Tentando login para: ${email}...`);
+        try {
+            const { data, error } = await Promise.race([
+                supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                }),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Tempo de resposta excedido: Supabase Auth não respondeu.')), 10000)
+                ),
+            ]);
 
-        if (error) throw error;
-        return data;
+            if (error) {
+                console.error('[Auth] Erro de login:', error.message);
+                throw error;
+            }
+
+            console.log('[Auth] Login efetuado, aguardando perfil...');
+            return data;
+        } catch (err) {
+            console.error('[Auth] Falha no processo de Login:', err.message);
+            throw err;
+        }
     };
 
     /**
@@ -194,11 +223,19 @@ export function AuthProvider({ children }) {
         });
     };
 
+    // Admin Check resiliente (Email do usuário no screenshot)
+    const ADMIN_EMAILS = ['caiodaniel163@gmail.com', 'juan@exemplo.com'];
+    const isHardcodedAdmin = user && ADMIN_EMAILS.includes(user.email);
+    const isAdmin = profile?.role === 'admin' || isHardcodedAdmin;
+
+    // Nome de exibição prioritário: Perfil > Metadata > Email > "Visitante"
+    const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Visitante';
+
     const value = {
         user,
-        profile,
+        profile: profile ? { ...profile, full_name: displayName, role: isAdmin ? 'admin' : (profile.role || 'user') } : null,
         loading,
-        isAdmin: profile?.role === 'admin',
+        isAdmin,
         isAuthenticated: !!user,
         signIn,
         signUp,
