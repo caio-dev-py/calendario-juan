@@ -2,6 +2,7 @@ import React from 'react';
 import {
     getDayHours,
     format,
+    parseLocalTime,
     RECORDING_TYPE_COLORS,
     STATUS_COLORS,
 } from '../../utils/dateUtils';
@@ -19,8 +20,8 @@ export default function DayView({
     const hours = getDayHours('06', '22');
 
     const getBookingPosition = (booking) => {
-        const start = new Date(booking.start_time);
-        const end = new Date(booking.end_time);
+        const start = parseLocalTime(booking.start_time);
+        const end = parseLocalTime(booking.end_time);
         const startHour = start.getHours() + start.getMinutes() / 60;
         const endHour = end.getHours() + end.getMinutes() / 60;
 
@@ -31,7 +32,7 @@ export default function DayView({
     };
 
     const dayBookings = bookings.filter((booking) => {
-        const bookingDate = new Date(booking.start_time);
+        const bookingDate = parseLocalTime(booking.start_time);
         return (
             bookingDate.getFullYear() === currentDate.getFullYear() &&
             bookingDate.getMonth() === currentDate.getMonth() &&
@@ -98,7 +99,7 @@ export default function DayView({
                                             {booking.client_name}
                                         </div>
                                         <div className="text-xs text-gray-300/70 truncate">
-                                            {format(new Date(booking.start_time), 'HH:mm')} - {format(new Date(booking.end_time), 'HH:mm')} · {booking.recording_type}
+                                            {format(parseLocalTime(booking.start_time), 'HH:mm')} - {format(parseLocalTime(booking.end_time), 'HH:mm')} · {booking.recording_type}
                                         </div>
                                     </div>
                                     {height > 50 && (

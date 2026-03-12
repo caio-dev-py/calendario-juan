@@ -6,6 +6,7 @@ import {
     addDays,
     subDays,
     format,
+    parseLocalTime,
     startOfMonth,
     endOfMonth,
     isSameDay,
@@ -188,7 +189,7 @@ export default function CalendarPage() {
                             <Calendar size={14} className="text-gray-500" />
                             <span className="text-sm text-gray-500">Horário:</span>
                             <span className="text-sm font-medium text-white">
-                                {format(new Date(selectedBooking.start_time), 'HH:mm')} - {format(new Date(selectedBooking.end_time), 'HH:mm')}
+                                {format(parseLocalTime(selectedBooking.start_time), 'HH:mm')} - {format(parseLocalTime(selectedBooking.end_time), 'HH:mm')}
                             </span>
                         </div>
                         {selectedBooking.location && (

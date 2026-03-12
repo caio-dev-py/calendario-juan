@@ -5,6 +5,7 @@ import {
     isSameMonth,
     isToday,
     format,
+    parseLocalTime,
     WEEKDAY_NAMES,
     RECORDING_TYPE_COLORS,
     STATUS_COLORS,
@@ -24,7 +25,7 @@ export default function MonthView({
 
     const getBookingsForDay = (day) => {
         return bookings.filter((booking) => {
-            const bookingDate = new Date(booking.start_time);
+            const bookingDate = parseLocalTime(booking.start_time);
             return isSameDay(bookingDate, day);
         });
     };
@@ -97,10 +98,10 @@ export default function MonthView({
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${typeColors.dot}`} />
                                                 <span className="truncate hidden sm:inline">
-                                                    {format(new Date(booking.start_time), 'HH:mm')} {booking.client_name}
+                                                    {format(parseLocalTime(booking.start_time), 'HH:mm')} {booking.client_name}
                                                 </span>
                                                 <span className="truncate sm:hidden">
-                                                    {format(new Date(booking.start_time), 'HH:mm')}
+                                                    {format(parseLocalTime(booking.start_time), 'HH:mm')}
                                                 </span>
                                             </div>
                                         );

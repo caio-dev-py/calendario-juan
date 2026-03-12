@@ -89,6 +89,20 @@ export function fromUTC(utcString) {
 }
 
 /**
+ * Converte um timestamp do banco de dados para Date local sem conversão de timezone.
+ * O banco salva os horários no fuso brasileiro, mas com sufixo 'Z'.
+ * Essa função remove o 'Z' para que o JavaScript não trate como UTC.
+ * @param {string} dbTimestamp - Timestamp do banco (ex: "2026-03-12T14:00:00.000Z")
+ * @returns {Date} Data no horário correto (sem offset de timezone)
+ */
+export function parseLocalTime(dbTimestamp) {
+    if (!dbTimestamp) return new Date();
+    // Remove o Z final e qualquer offset (+00:00, etc.) para tratar como horário local
+    const cleaned = dbTimestamp.replace(/Z$/i, '').replace(/[+-]\d{2}:\d{2}$/, '');
+    return new Date(cleaned);
+}
+
+/**
  * Formata um slot de horário para exibição.
  * @param {string} time - Horário no formato HH:mm
  * @returns {string} Horário formatado (ex: "14:00")

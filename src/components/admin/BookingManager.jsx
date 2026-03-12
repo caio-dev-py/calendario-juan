@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useBookings } from '../../hooks/useBookings';
 import {
     format,
+    parseLocalTime,
     RECORDING_TYPE_COLORS,
 } from '../../utils/dateUtils';
 import StatusBadge from '../ui/StatusBadge';
@@ -134,7 +135,7 @@ export default function BookingManager() {
                                                 </span>
                                             </div>
                                             <div className="text-xs text-[var(--color-text-muted)]">
-                                                📅 {new Date(booking.start_time).toLocaleDateString('pt-BR')} · {format(new Date(booking.start_time), 'HH:mm')} - {format(new Date(booking.end_time), 'HH:mm')}
+                                                📅 {parseLocalTime(booking.start_time).toLocaleDateString('pt-BR')} · {format(parseLocalTime(booking.start_time), 'HH:mm')} - {format(parseLocalTime(booking.end_time), 'HH:mm')}
                                             </div>
                                             {booking.location && (
                                                 <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
@@ -165,13 +166,13 @@ export default function BookingManager() {
                             <InfoRow label="Tipo" value={selectedBooking.recording_type} />
                             <InfoRow
                                 label="Data"
-                                value={new Date(selectedBooking.start_time).toLocaleDateString('pt-BR', {
+                                value={parseLocalTime(selectedBooking.start_time).toLocaleDateString('pt-BR', {
                                     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
                                 })}
                             />
                             <InfoRow
                                 label="Horário"
-                                value={`${format(new Date(selectedBooking.start_time), 'HH:mm')} - ${format(new Date(selectedBooking.end_time), 'HH:mm')}`}
+                                value={`${format(parseLocalTime(selectedBooking.start_time), 'HH:mm')} - ${format(parseLocalTime(selectedBooking.end_time), 'HH:mm')}`}
                             />
                             {selectedBooking.location && (
                                 <InfoRow label="Local" value={selectedBooking.location} icon={<MapPin size={14} />} />

@@ -104,8 +104,8 @@ export default function BookingForm() {
         try {
             await createBooking({
                 ...formData,
-                start_time: `${dateStr}T${selectedSlotData.start}:00.000Z`,
-                end_time: `${dateStr}T${selectedSlotData.end}:00.000Z`,
+                start_time: `${dateStr}T${selectedSlotData.start}:00`,
+                end_time: `${dateStr}T${selectedSlotData.end}:00`,
             });
             setSuccess(true);
             setStep(3);
